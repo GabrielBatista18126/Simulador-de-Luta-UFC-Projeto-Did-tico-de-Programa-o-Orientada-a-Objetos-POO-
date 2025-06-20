@@ -49,4 +49,17 @@ public class LutadorController {
         lutadorService.deletarLutador(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Lutador> atualizar(@PathVariable Long id, @RequestBody Lutador input) {
+        Lutador existente = lutadorService.buscarPorId(id);
+
+        existente.setNome(input.getNome());
+        existente.setNacionalidade(input.getNacionalidade());
+        existente.setIdade(input.getIdade());
+        existente.setAltura(input.getAltura());
+        existente.setPeso(input.getPeso()); // recalcula a categoria
+
+        return ResponseEntity.ok(existente);
+    }
 }
