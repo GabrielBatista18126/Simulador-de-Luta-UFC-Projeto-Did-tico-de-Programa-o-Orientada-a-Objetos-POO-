@@ -1,53 +1,69 @@
 package com.gabrielbatista.ultraemoji.service;
 
+import com.gabrielbatista.ultraemoji.domain.EstatisticaLutador;
 import com.gabrielbatista.ultraemoji.domain.Lutador;
+import com.gabrielbatista.ultraemoji.dto.LutadorResponseDTO;
 import com.gabrielbatista.ultraemoji.exception.ResourceNotFoundException;
+import com.gabrielbatista.ultraemoji.repository.LutadorRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class LutadorService {
-    private final List<Lutador> lutadores = new ArrayList<>();
-    private final AtomicLong idGenerator = new AtomicLong();
 
-    public Lutador cadastrarLutador(Lutador lutador) {
-        Long id = idGenerator.incrementAndGet();
+    private final LutadorRepository lutadorRepository;
 
-        // cria novo objeto com categoria calculada automaticamente via setPeso()
-        Lutador novo = new Lutador(
-                id,
-                lutador.getNome(),
-                lutador.getNacionalidade(),
-                lutador.getIdade(),
-                lutador.getAltura(),
-                lutador.getPeso(),
-                lutador.getVitorias(),
-                lutador.getDerrotas(),
-                lutador.getEmpates()
-        );
-
-        lutadores.add(novo);
-        return novo;
+    public LutadorService(LutadorRepository lutadorRepository) {
+        this.lutadorRepository = lutadorRepository;
     }
 
-    public List<Lutador> listarLutadores() {
-        return new ArrayList<>(lutadores);
-    }
-
-    public void deletarLutador(Long id) {
-        boolean removed = lutadores.removeIf(l -> l.getId().equals(id));
-        if (!removed) {
-            throw new ResourceNotFoundException("Lutador com id " + id + " não encontrado.");
+    public Lutador salvar(Lutador lutador) {
+        if (lutador.getEstatisticas() == null) {
+            EstatisticaLutador estatisticas = new EstatisticaLutador(lutador);
+            lutador.setEstatisticas(estatisticas);
         }
+        return lutadorRepository.save(lutador);
+    }
+
+    public List<Lutador> listar() {
+        return lutadorRepository.findAll();
     }
 
     public Lutador buscarPorId(Long id) {
-        return lutadores.stream()
-                .filter(l -> l.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Lutador com id " + id + " não encontrado."));
+        return lutadorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lutador não encontrado com ID: " + id));
+    }
+
+    public void deletar(Long id) {
+        Lutador lutador = buscarPorId(id);
+        lutadorRepository.delete(lutador);
+    }
+
+    public Lutador atualizar(Long id, Lutador dadosAtualizados) {
+        Lutador existente = buscarPorId(id);
+
+        existente.setNome(dadosAtualizados.getNome());
+        existente.setNacionalidade(dadosAtualizados.getNacionalidade());
+        existente.setIdade(dadosAtualizados.getIdade());
+        existente.setAltura(dadosAtualizados.getAltura());
+        existente.setPeso(dadosAtualizados.getPeso());
+
+        return lutadorRepository.save(existente);
+    }
+
+    public List<LutadorResponseDTO> listarDTO() {
+        return listar().stream().map(l -> new LutadorResponseDTO(
+                l.getId(),
+                l.getNome(),
+                l.getNacionalidade(),
+                l.getIdade(),
+                l.getAltura(),
+                l.getPeso(),
+                l.getCategoria(),
+                l.getEstatisticas().getVitorias(),
+                l.getEstatisticas().getDerrotas(),
+                l.getEstatisticas().getEmpates()
+        )).toList();
     }
 }

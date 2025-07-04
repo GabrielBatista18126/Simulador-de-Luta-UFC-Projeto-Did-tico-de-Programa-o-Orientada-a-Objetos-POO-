@@ -1,22 +1,54 @@
 package com.gabrielbatista.ultraemoji.service;
 
-import org.springframework.stereotype.Service;
-
 import com.gabrielbatista.ultraemoji.domain.Lutador;
+import com.gabrielbatista.ultraemoji.domain.Luta;
+import com.gabrielbatista.ultraemoji.dto.LutaRequestDTO;
+import com.gabrielbatista.ultraemoji.dto.LutaResultDTO;
+import com.gabrielbatista.ultraemoji.model.LutaModel;
+import com.gabrielbatista.ultraemoji.repository.LutaRepository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class LutaService {
 
-    public Lutador iniciarLuta(Lutador lutador1, Lutador lutador2) {
-        if (lutador1.getVitorias() > lutador2.getVitorias()) return lutador1;
-        if (lutador2.getVitorias() > lutador1.getVitorias()) return lutador2;
+    private final LutadorService lutadorService;
+    private final LutaRepository lutaRepository;
 
-        if (lutador1.getDerrotas() < lutador2.getDerrotas()) return lutador1;
-        if (lutador2.getDerrotas() < lutador1.getDerrotas()) return lutador2;
+    public LutaService(LutadorService lutadorService, LutaRepository lutaRepository) {
+        this.lutadorService = lutadorService;
+        this.lutaRepository = lutaRepository;
+    }
 
-        if (lutador1.getIdade() < lutador2.getIdade()) return lutador1;
-        if (lutador2.getIdade() < lutador1.getIdade()) return lutador2;
+    public LutaResultDTO executarLuta(LutaRequestDTO request) {
+        Lutador desafiante = lutadorService.buscarPorId(request.getLutador1Id());
+        Lutador desafiado = lutadorService.buscarPorId(request.getLutador2Id());
 
-        return null;
+        LutaModel luta = new LutaModel();
+        luta.marcarLuta(desafiante, desafiado);
+        luta.lutar();
+
+        String vencedor = luta.getVencedor();
+
+        lutadorService.salvar(desafiante);
+        lutadorService.salvar(desafiado);
+
+        String resultado = definirResultado(desafiante, desafiado);
+        salvarLutaNoHistorico(desafiante, desafiado, resultado);
+
+        return new LutaResultDTO(desafiante.getNome(), desafiado.getNome(), vencedor);
+    }
+
+    private String definirResultado(Lutador desafiante, Lutador desafiado) {
+        int v1 = desafiante.getEstatisticas().getVitorias();
+        int v2 = desafiado.getEstatisticas().getVitorias();
+
+        if (v1 > v2) return "Desafiante";
+        if (v2 > v1) return "Desafiado";
+        return "Empate";
+    }
+
+    private void salvarLutaNoHistorico(Lutador desafiante, Lutador desafiado, String resultado) {
+        Luta luta = new Luta(desafiante, desafiado, resultado);
+        lutaRepository.save(luta);
     }
 }

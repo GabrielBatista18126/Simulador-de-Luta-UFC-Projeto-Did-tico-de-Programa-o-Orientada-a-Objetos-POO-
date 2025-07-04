@@ -1,70 +1,90 @@
 package com.gabrielbatista.ultraemoji.domain;
 
+import jakarta.persistence.*;
+
+@Entity
 public class Lutador {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String nome;
     private String nacionalidade;
     private int idade;
     private float altura;
     private float peso;
-    private String categoria;
-    private int vitorias;
-    private int derrotas;
-    private int empates;
 
-    // Construtor vazio obrigatório para Spring
-    public Lutador() {}
+    @OneToOne(mappedBy = "lutador", cascade = CascadeType.ALL)
+    private EstatisticaLutador estatisticas;
 
-    // Construtor completo (sem categoria explícita)
-    public Lutador(Long id, String nome, String nacionalidade, int idade,
-                   float altura, float peso, int vitorias, int derrotas, int empates) {
-        this.id = id;
+    public Lutador() {
+    }
+
+    public Lutador(String nome, String nacionalidade, int idade, float altura, float peso) {
         this.nome = nome;
         this.nacionalidade = nacionalidade;
         this.idade = idade;
         this.altura = altura;
-        setPeso(peso); // define peso e calcula categoria
-        this.vitorias = vitorias;
-        this.derrotas = derrotas;
-        this.empates = empates;
+        this.peso = peso;
+        this.estatisticas = new EstatisticaLutador(this);
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
+    public String getNome() {
+        return nome;
+    }
 
-    public String getNacionalidade() { return nacionalidade; }
-    public void setNacionalidade(String nacionalidade) { this.nacionalidade = nacionalidade; }
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
 
-    public int getIdade() { return idade; }
-    public void setIdade(int idade) { this.idade = idade; }
+    public String getNacionalidade() {
+        return nacionalidade;
+    }
 
-    public float getAltura() { return altura; }
-    public void setAltura(float altura) { this.altura = altura; }
+    public void setNacionalidade(String nacionalidade) {
+        this.nacionalidade = nacionalidade;
+    }
 
-    public float getPeso() { return peso; }
+    public int getIdade() {
+        return idade;
+    }
+
+    public void setIdade(int idade) {
+        this.idade = idade;
+    }
+
+    public float getAltura() {
+        return altura;
+    }
+
+    public void setAltura(float altura) {
+        this.altura = altura;
+    }
+
+    public float getPeso() {
+        return peso;
+    }
+
     public void setPeso(float peso) {
         this.peso = peso;
-        this.categoria = calcularCategoria(peso);
     }
 
-    public String getCategoria() { return categoria; }
+    public EstatisticaLutador getEstatisticas() {
+        return estatisticas;
+    }
 
-    public int getVitorias() { return vitorias; }
-    public void setVitorias(int vitorias) { this.vitorias = vitorias; }
+    public void setEstatisticas(EstatisticaLutador estatisticas) {
+        this.estatisticas = estatisticas;
+    }
 
-    public int getDerrotas() { return derrotas; }
-    public void setDerrotas(int derrotas) { this.derrotas = derrotas; }
-
-    public int getEmpates() { return empates; }
-    public void setEmpates(int empates) { this.empates = empates; }
-
-    private String calcularCategoria(float peso) {
-        if (peso < 52.2 || peso > 120.2) return "Inválido";
-        if (peso <= 70.3) return "Leve";
-        if (peso <= 83.9) return "Médio";
-        return "Pesado";
+    public String getCategoria() {
+        if (peso <= 65) return "Leve";
+        else if (peso <= 85) return "Médio";
+        else return "Pesado";
     }
 }
