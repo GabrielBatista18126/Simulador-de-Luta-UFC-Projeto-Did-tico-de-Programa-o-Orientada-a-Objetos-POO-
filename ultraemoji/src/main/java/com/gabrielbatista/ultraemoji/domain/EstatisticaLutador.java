@@ -1,5 +1,6 @@
 package com.gabrielbatista.ultraemoji.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -15,6 +16,7 @@ public class EstatisticaLutador {
 
     @OneToOne
     @JoinColumn(name = "lutador_id")
+    @JsonIgnore
     private Lutador lutador;
 
     public EstatisticaLutador() {}

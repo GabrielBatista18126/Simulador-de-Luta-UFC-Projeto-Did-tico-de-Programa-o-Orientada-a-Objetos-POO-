@@ -1,6 +1,5 @@
 package com.gabrielbatista.ultraemoji.service;
 
-import com.gabrielbatista.ultraemoji.domain.EstatisticaLutador;
 import com.gabrielbatista.ultraemoji.domain.Lutador;
 import com.gabrielbatista.ultraemoji.dto.LutadorResponseDTO;
 import com.gabrielbatista.ultraemoji.exception.ResourceNotFoundException;
@@ -19,10 +18,6 @@ public class LutadorService {
     }
 
     public Lutador salvar(Lutador lutador) {
-        if (lutador.getEstatisticas() == null) {
-            EstatisticaLutador estatisticas = new EstatisticaLutador(lutador);
-            lutador.setEstatisticas(estatisticas);
-        }
         return lutadorRepository.save(lutador);
     }
 
@@ -53,17 +48,29 @@ public class LutadorService {
     }
 
     public List<LutadorResponseDTO> listarDTO() {
-        return listar().stream().map(l -> new LutadorResponseDTO(
-                l.getId(),
-                l.getNome(),
-                l.getNacionalidade(),
-                l.getIdade(),
-                l.getAltura(),
-                l.getPeso(),
-                l.getCategoria(),
-                l.getEstatisticas().getVitorias(),
-                l.getEstatisticas().getDerrotas(),
-                l.getEstatisticas().getEmpates()
-        )).toList();
+        return listar().stream().map(l -> {
+            int vitorias = 0;
+            int derrotas = 0;
+            int empates = 0;
+
+            if (l.getEstatisticas() != null) {
+                vitorias = l.getEstatisticas().getVitorias();
+                derrotas = l.getEstatisticas().getDerrotas();
+                empates = l.getEstatisticas().getEmpates();
+            }
+
+            return new LutadorResponseDTO(
+                    l.getId(),
+                    l.getNome(),
+                    l.getNacionalidade(),
+                    l.getIdade(),
+                    l.getAltura(),
+                    l.getPeso(),
+                    l.getCategoria(),
+                    vitorias,
+                    derrotas,
+                    empates
+            );
+        }).toList();
     }
 }

@@ -27,7 +27,6 @@ public class Lutador {
         this.idade = idade;
         this.altura = altura;
         this.peso = peso;
-        this.estatisticas = new EstatisticaLutador(this);
     }
 
     public Long getId() {
